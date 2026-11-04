@@ -13,9 +13,47 @@ onderwerp bijvoorbeeld) maar veel grotere corpus getraind is.)
 
 Heel erg overfitten door kleine corpus. Moeten we wat op verzinnen. Bijv zie ## tokenizer
 
-W
-
 -----------------------------------------------------------------------------------------------------------
+
+## Modellen 
+
+### Probleem
+De MLP haalde ~99% train aan het eind van de training, en ~55% validatie.
+Doel: kijken of regularisatie of een andere architectuur de validatie verbetert.
+
+### Opzet
+Alles op BoW, BPE-tokenizer (vocab 3000, min_frequency 5), 5-fold CV, 1 seed.
+Het model met de laagste validatieloss wordt bewaard.
+
+### Resultaten (gemiddelde validatie-accuracy)
+| Test | Variant | Accuracy |
+|---|---|---|
+| Geen regularisatie | dropout 0, wd 0 | 0.5426 |
+| Dropout | 0.1 / 0.3 / 0.5 | 0.5511 / 0.5426 / 0.5517 |
+| Dropout | 0.8 / 0.95 | 0.5556 / 0.5364 |
+| Weight decay (dropout 0.1) | 1e-3 / 1e-2 | 0.5409 / 0.5413 |
+| Weight decay (dropout 0.5) | 0.1 / 1 | 0.5494 / 0.5469 |
+| Weight decay (dropout 0.5) | 10 / 100 | 0.5063 / 0.2092 |
+| Lagere learning rate | 1e-4, 40 epochs | 0.5509 |
+| Hidden size | 8 / 16 / 32 / 64 | 0.5286 / 0.5364 / 0.5429 / 0.5474 |
+| Architectuur | MLP / mlp2 128-64 / mlp2 256-128 | 0.5559 / 0.5449 / 0.5434 |
+| Vocabulaire | 1000 / 3000 / 5000 | 0.5319 / ~0.547 / 0.5572 |
+| min_frequency (vocab 3000) | 2 / 5 | 0.5474 / 0.5466 |
+
+### Conclusies
+- Regularisatie geeft een breed plateau rond 0.54-0.556; de meeste verschillen vallen binnen de ruis.
+- Identieke instellingen verschilden tot ~1 procentpunt, dus eindrun met meerdere seeds.
+- Pas bij wd 10 en 100 zien we duidelijke underfitting.
+- Een kleiner model of een tweede laag verbetert de validatie niet.
+- Overfitting lijkt niet de hoofdoorzaak van de lage score. BoW mist woordvolgorde, en de emoties lijken op elkaar.
+
+### Keuzes voor de eindrun
+- MLP: hidden 128, dropout 0.5, weight decay 0.1, 20 epochs
+- Derde architectuur: mlp2 met lagen 128 en 64, zelfde regularisatie, patience 3
+- Voorstel tokenizer: vocab 5000, min_frequency 2
+- of TDIF Tokenizer (even kijken of dat de makkelijkste is)
+
+
 ## Checklist
 
 What **we expect you to do**:
