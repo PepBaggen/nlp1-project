@@ -54,6 +54,56 @@ Het model met de laagste validatieloss wordt bewaard.
 - of TDIF Tokenizer (even kijken of dat de makkelijkste is)
 
 
+### Resultaten eindrun
+Opzet: 5-fold cross-validation met 3 seeds (0, 1, 2), dus 15 metingen per systeem. Metric: accuracy op de validatiefolds. Tokenizer: BPE, vocab 5000, min_frequency 2.
+MLP en mlp2: hidden 128 (mlp2: 128 en 64), dropout 0.5, weight decay 0.1, 20 epochs (mlp2: patience 3).
+
+| Accuracy | Indicator | BoW | TF-IDF |
+|---|---|---|---|
+| Logistic | 0.5216 | 0.5237 | 0.5405 |
+| MLP | 0.5548 | 0.5534 | 0.5520 |
+| mlp2 | 0.5410 | 0.5358 | 0.5235 |
+
+### Bayesiaanse vergelijking (ROPE 0.5%)
+| Vergelijking | Verschil | P(eerste wint) | P(gelijk) | P(tweede wint) |
+|---|---|---|---|---|
+| MLP indicator vs MLP BoW | 0.0014 | 0.3035 | 0.5125 | 0.1840 |
+| MLP indicator vs MLP TF-IDF | 0.0028 | 0.3572 | 0.5428 | 0.1000 |
+| MLP BoW vs MLP TF-IDF | 0.0014 | 0.2288 | 0.6770 | 0.0942 |
+| Logistic indicator vs MLP indicator | -0.0333 | 0.0000 | 0.0001 | 0.9998 |
+| Logistic BoW vs MLP BoW | -0.0297 | 0.0002 | 0.0028 | 0.9970 |
+| Logistic TF-IDF vs MLP TF-IDF | -0.0115 | 0.0075 | 0.1384 | 0.8541 |
+| Logistic BoW vs Logistic TF-IDF | -0.0167 | 0.0031 | 0.0487 | 0.9482 |
+| MLP BoW vs mlp2 BoW | 0.0176 | 0.9158 | 0.0738 | 0.0104 |
+| MLP TF-IDF vs mlp2 TF-IDF | 0.0285 | 0.9962 | 0.0035 | 0.0003 |
+
+### Foutanalyse (logistic + BoW, 80/20-split van de trainset, accuracy 0.524)
+| Emotie | Precision | Recall | F1 |
+|---|---|---|---|
+| joy | 0.635 | 0.657 | 0.646 |
+| fear | 0.687 | 0.644 | 0.665 |
+| anger | 0.451 | 0.467 | 0.459 |
+| sadness | 0.553 | 0.547 | 0.550 |
+| disgust | 0.492 | 0.515 | 0.503 |
+| shame | 0.413 | 0.410 | 0.412 |
+| guilt | 0.436 | 0.421 | 0.429 |
+
+Meest verwarde paren: shame/guilt (68), anger/guilt (45), anger/disgust (43), disgust/shame (40), joy/sadness (36).
+
+### Conclusies eindrun
+- De drie MLP's zijn de beste systemen en zijn onderling gelijk binnen de ROPE.
+- De MLP verslaat logistic op elke representatie, het duidelijkst op indicator en BoW.
+- TF-IDF helpt logistic, maar maakt voor de MLP niets uit.
+- De tweede laag helpt niet: mlp2 scoort lager dan de MLP, vooral op TF-IDF.
+- De fouten zitten vooral bij emoties die op elkaar lijken, zoals shame en guilt.
+
+### Beperkingen
+- De MLP-scores gebruiken de beste epoch op validatie, logistic niet. Dat kan de MLP's iets bevoordelen.
+- De tokenizer en de TF-IDF zijn getraind op alle trainteksten, dus ook op de validatiefolds.
+- Logistic gaf 27 keer een ConvergenceWarning bij max_iter 200.
+- De testsplit is niet gebruikt; alle scores komen uit cross-validation.
+
+
 ## Checklist
 
 What **we expect you to do**:
