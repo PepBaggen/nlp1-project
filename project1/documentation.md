@@ -103,6 +103,15 @@ Meest verwarde paren: shame/guilt (68), anger/guilt (45), anger/disgust (43), di
 - Logistic gaf 27 keer een ConvergenceWarning bij max_iter 200.
 - De testsplit is niet gebruikt; alle scores komen uit cross-validation.
 
+## ROPE (Region Of Practical Equivalence)
+
+We use a ROPE of ±0.005 accuracy (0.5 percentage points). If the difference between two systems is smaller than this, we treat them as practically equal. The Bayesian comparison reports three probabilities: A is better, practically equal (tie), and B is better.
+
+We chose 0.005 for two reasons.
+
+1. ** Convention.** The NLP1 tutorial uses 0.005, because accuracy gains below about half a percentage point are usually seen as uninteresting in NLP papers. We follow this convention.
+
+2. **Variation between runs.** In our tuning, identical settings gave accuracies that differed by up to about 1 percentage point. A difference of 0.5 percentage points is smaller than this, so it falls within the range of run-to-run variation we observed. We therefore treat systems that differ by less than this margin as practically equivalent.
 
 ## Checklist
 
