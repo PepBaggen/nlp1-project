@@ -109,7 +109,7 @@ We use a ROPE of ±0.005 accuracy (0.5 percentage points). If the difference bet
 
 We chose 0.005 for two reasons.
 
-1. ** Convention.** The NLP1 tutorial uses 0.005, because accuracy gains below about half a percentage point are usually seen as uninteresting in NLP papers. We follow this convention.
+1. **Convention.** The NLP1 tutorial uses 0.005, because accuracy gains below about half a percentage point are usually seen as uninteresting in NLP papers. We follow this convention.
 
 2. **Variation between runs.** In our tuning, identical settings gave accuracies that differed by up to about 1 percentage point. A difference of 0.5 percentage points is smaller than this, so it falls within the range of run-to-run variation we observed. We therefore treat systems that differ by less than this margin as practically equivalent.
 
