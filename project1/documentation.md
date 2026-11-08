@@ -101,7 +101,7 @@ Meest verwarde paren: shame/guilt (68), anger/guilt (45), anger/disgust (43), di
 - De MLP-scores gebruiken de beste epoch op validatie, logistic niet. Dat kan de MLP's iets bevoordelen.
 - De tokenizer en de TF-IDF zijn getraind op alle trainteksten, dus ook op de validatiefolds.
 - Logistic gaf 27 keer een ConvergenceWarning bij max_iter 200.
-- De testsplit is niet gebruikt; alle scores komen uit cross-validation.
+- Alle vergelijkingen komen uit cross-validation; de testsplit is alleen aan het eind één keer gebruikt voor het gekozen systeem (zie hieronder).
 
 ## ROPE (Region Of Practical Equivalence)
 
@@ -112,6 +112,16 @@ We chose 0.005 for two reasons.
 1. **Convention.** The NLP1 tutorial uses 0.005, because accuracy gains below about half a percentage point are usually seen as uninteresting in NLP papers. We follow this convention.
 
 2. **Variation between runs.** In our tuning, identical settings gave accuracies that differed by up to about 1 percentage point. A difference of 0.5 percentage points is smaller than this, so it falls within the range of run-to-run variation we observed. We therefore treat systems that differ by less than this margin as practically equivalent.
+
+### Testset (gekozen systeem)
+De 15 opgeslagen MLP + indicator-modellen van de eindrun (3 seeds x 5 folds, vocab 5000, min_frequency 2) één keer geëvalueerd op de testsplit (1504 teksten), in `notebooks/analysis.ipynb` (laatste cel).
+Controle: dezelfde modellen geven op hun validatiefolds gemiddeld 0.5548, gelijk aan de eindrun.
+
+| | Gemiddelde | Std | Min | Max |
+|---|---|---|---|---|
+| Test-accuracy MLP + indicator | 0.5504 | 0.0064 | 0.5379 | 0.5658 |
+
+De testscore ligt dicht bij de CV-score (0.555), dus de validatiescores waren niet te optimistisch.
 
 ## Checklist
 
