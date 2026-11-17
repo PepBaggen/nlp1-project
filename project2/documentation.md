@@ -2,21 +2,41 @@ Nummers tussen haakjes verwijzen naar de stappen uit "Get to work".
 
 ## Al gedaan
 
-- **(1) Embedding model:** GloVe 2024 wikigiga 50d geladen (in notebook) in embeddings.py staan ook andere die we nog kunnen testen
+- **Embedding model:** GloVe 2024 wikigiga 50d geladen (in notebook) in embeddings.py staan ook andere die we nog kunnen testen
 
-- **(1) Tokenizers:** `bow` (zonder leestekens/stopwoorden) en `rnn` (alles behouden, koppeltekens gesplitst)
+- **Tokenizers:** `bow` (zonder leestekens/stopwoorden) en `rnn` (alles behouden, koppeltekens gesplitst)
 
-- **(1) Coverage:** 99.3% (bow) en 99.7% (rnn) token coverage (~95% type coverage - unique token coverage) - Bij rnn werden tokens met koppeltekens als <unk> gezien -> een tokenizer gemaakt die met regular expressions de koppeltekens vervangt voor spaties (99.3 -> 99.7)
+- **Coverage:** 99.3% (bow) en 99.7% (rnn) token coverage (~95% type coverage - unique token coverage) - Bij rnn werden tokens met koppeltekens als <unk> gezien -> een tokenizer gemaakt die met regular expressions de koppeltekens vervangt voor spaties (99.3 -> 99.7)
 
-- **(2) Similariteit en buren:** emoties liggen dicht bij elkaar (0,53–0,87), tegengestelden ook.
+- **Similariteit en buren:** emoties liggen dicht bij elkaar (0,53–0,87), tegengestelden ook.
 
 - **Pipeline (tutorialinstellingen, 3 seeds × 5 folds):**
-  Met standaard instellingen:
+  | classifier (MLP) | 2 verborgen lagen van 50, dropout 0,5 (embed-and-pool)| 2 verborgen lagen van 50, dropout 0,1 (lstm)
+  | optimizer | AdamW, lr 1e-3, weight decay 1e-4
+  | batch size / epochs | 64 / 20
+  | modelselectie | epoch met de laagste validatie-loss
+
+  Met standaard instellingen (frozen embeddings):
 
   embed-and-pool mean=0.3871 std=0.0125 (n=15)
   lstm mean=0.4586 std=0.0118 (n=15)
 
-(project 1: ~0,55)
+  Met standaard instellingen (trainable embeddings):
+
+  embed-and-pool mean=0.5205 std=0.0170 (n=15)
+  lstm mean=0.4582 std=0.0228 (n=15)
+
+  trainable params - dropout 0.1 -> 0.5, hidden size 50 -> 200, epochs 20 -> 35
+
+  embed-and-pool mean=0.5545 std=0.0198 (n=15)
+
+  MLP ------- dropout 0.1 -> 0.5, hidden size 50 -> 200, epochs 20 -> 60
+  encoder --- dropout -> 0,2, hidden dim 50 -> 100
+
+  lstm mean=0.5259 std=0.0247 (n=15) -- trainable params
+  lstm mean=0.5581 std=0.0156 (n=15) -- frozen params
+
+  (project 1: ~0,55)
 
 ## let op
 
