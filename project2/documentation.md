@@ -117,6 +117,21 @@ Vaste settings overal: MLP 200-200, dropout 0.5, word dropout 0.2 (lstm), AdamW 
 
 (project 1 MLP + indicator: CV 0.5548, test 0.5504)
 
+## Testset (gekozen systeem)
+
+Keuze alleen op CV: hoogste gemiddelde val-accuracy van alle 32 configs is LSTM + fastText 300d frozen, hidden 100 (0.5993). Hidden 200 (0.5907) en pool fastText trainable (0.5776) lager, en hidden 100 is ook het kleinste model, dus geen reden om iets anders te kiezen.
+
+Zelfde protocol als project 1: de 15 modellen (3 seeds x 5 folds, zelfde splits als CV, best epoch op laagste val loss) elk één keer op de testsplit (1504 teksten). `modal run project2/modal_run.py::test`, uitkomst in `results/project2/modal/test_final.json` (incl. voorspellingen per tekst, voor de foutanalyse).
+Controle: dezelfde modellen geven op hun validatiefolds weer precies 0.5993.
+
+| | Gemiddelde | Std | Min | Max |
+|---|---|---|---|---|
+| Test-accuracy LSTM + fastText frozen | 0.5828 | 0.0105 | 0.5605 | 0.5997 |
+| Test-accuracy project 1 (MLP + indicator) | 0.5504 | 0.0064 | 0.5379 | 0.5658 |
+
+- +3.2 procentpunt op de testset t.o.v. project 1, ruim boven de 0.005-marge. 13 van de 15 modellen scoren boven het beste project 1 model (0.5658).
+- Test ligt 1.7 procentpunt onder CV (project 1: 0.4). Verwacht: we hebben het beste van 32 configs gekozen op CV, dus die CV-score is iets te optimistisch (winner's curse).
+
 ## let op
 
 - in project2.ipynb gebruiken we trained_emb_model voor analyse aan het begin maar gebruik later isear_emb_model om te trainen (isear_emb_model is het emb tabel met alleen isear tokens)
@@ -140,4 +155,4 @@ Vaste settings overal: MLP 200-200, dropout 0.5, word dropout 0.2 (lstm), AdamW 
 
 - Bayesiaanse vergelijking (zoals project 1) van lstm fastText vs project 1 en vs pool fastText
 
-- Eindsysteem kiezen (lstm + fastText frozen?) en één keer op de testset evalueren (project 1 test: 0.5504)
+- ~~Eindsysteem kiezen (lstm + fastText frozen?) en één keer op de testset evalueren (project 1 test: 0.5504)~~ gedaan: test 0.5828 (zie Testset)

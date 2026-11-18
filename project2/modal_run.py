@@ -91,7 +91,8 @@ for frac in [0.1, 0.25, 0.5]:
 
 
 @app.function(gpu="T4", timeout=3 * 60 * 60, volumes={"/cache": cache})
-def run_config(name, cfg, seeds=(0, 1, 2), num_folds=5):
+def run_config(name, cfg, seeds=(0, 1, 2), num_folds=5, test=False):
+    """Train seeds x folds models. With test=True, also evaluate each best-epoch model ONCE on the test split."""
     import random
     import re
 
@@ -130,6 +131,9 @@ def run_config(name, cfg, seeds=(0, 1, 2), num_folds=5):
                                          language="english", vocab=emb.vocab)
 
     result = {"name": name, "config": cfg, "accuracies": [], "best_epochs": [], "curves": []}
+    if test:
+        test_texts = list(dataset["test"]["text"])
+        result.update(test_labels=[int(y) for y in dataset["test"]["label"]], test_accuracies=[], test_preds=[])
     for seed in seeds:
         folds = part1.experiment.cross_validation_split(pairs=pairs, k=num_folds, seed=seed)
         accs, best_epochs, curves = [], [], []
@@ -148,6 +152,11 @@ def run_config(name, cfg, seeds=(0, 1, 2), num_folds=5):
             )
             accs.append(metrics[best]["val_metrics"]["accuracy"])
             best_epochs.append(best + 1)
+            if test:   # best epoch (lowest val loss) was saved by train(); load it and predict the test split
+                model = part2.experiment.load(f"/tmp/{name}-{seed}-{fold}", emb, device="cuda")
+                preds = part2.experiment.predict_logprobs(model, tokenizer, test_texts, batch_size=256, device="cuda").argmax(-1)
+                result["test_preds"].append(preds.tolist())
+                result["test_accuracies"].append(float((preds == np.array(result["test_labels"])).mean()))
             curves.append([{"train_loss": m["train_metrics"]["loss"], "train_acc": m["train_metrics"]["accuracy"],
                             "val_loss": m["val_metrics"]["loss"], "val_acc": m["val_metrics"]["accuracy"]}
                            for m in metrics])
@@ -201,3 +210,22 @@ def main(only: str = "", dry: bool = False):
                 avg = {k: sum(c[e][k] for c in curves) / len(curves) for k in curves[0][e]}
                 f.write(f"{e + 1:5d}  {avg['train_loss']:10.4f}  {avg['train_acc']:9.4f}  {avg['val_loss']:8.4f}  {avg['val_acc']:7.4f}\n")
     log("all done")
+
+
+# Final system, chosen on cross-validation only (highest mean val accuracy, see documentation.md).
+FINAL = "r2-ft-lstm-base"
+FINAL_CFG = variant(LSTM, emb="fasttext300")   # identical to emb-lstm-fasttext300
+
+
+@app.local_entrypoint()
+def test():
+    """modal run project2/modal_run.py::test  -- run once, at the very end."""
+    r = run_config.remote(FINAL, FINAL_CFG, test=True)
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    (OUT_DIR / "test_final.json").write_text(json.dumps(r))   # save first, then summarise (no numpy locally)
+    import statistics
+    t = r["test_accuracies"]
+    line = (f"TEST {FINAL} (LSTM, fastText 300d frozen, hidden 100): val mean={r['mean']:.4f}  "
+            f"test mean={statistics.mean(t):.4f} std={statistics.pstdev(t):.4f} min={min(t):.4f} max={max(t):.4f}  (n={len(t)} models)")
+    print(line)
+    (OUT_DIR / "test_final.txt").write_text(line + "\n")

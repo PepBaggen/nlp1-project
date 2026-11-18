@@ -1,0 +1,1 @@
+TEST r2-ft-lstm-base (LSTM, fastText 300d frozen, hidden 100): val mean=0.5993  test mean=0.5828 std=0.0105 min=0.5605 max=0.5997  (n=15 models)
